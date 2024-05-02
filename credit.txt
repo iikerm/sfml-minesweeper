@@ -1,0 +1,5 @@
+Original beach pixel art created by Arnav Saikia and
+downloaded from https://palm-tree.itch.io/pixel-art
+
+Modified by me in order to fit the game's color scheme
+and to produce other sprites
