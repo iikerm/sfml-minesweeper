@@ -1,6 +1,6 @@
 # sfml-minesweeper
 
-This is a version of the famous minesweeper game that I made
+This is a version of the minesweeper game that I made
 on my own in order to practice using C++ classes and the SFML
 library. Feel free to download and modify the code as you wish
 
