@@ -27,3 +27,10 @@ with any other SFML C++ file:
 
 > In this case, the program only needs the SFML graphics header file, but
 > that also requires to include both the system and the window header files
+>
+
+---
+# Game images
+![imagen](https://github.com/iikerm/sfml-minesweeper/assets/151840754/767fc612-1a08-4870-a5e2-3fd47974e518)
+
+![Uploading imagen.png…]()
