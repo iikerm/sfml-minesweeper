@@ -160,7 +160,7 @@ sf::Vector2i gameMatrix::getMousePosIndex(sf::Vector2i mousePos){
 }
 
 void gameMatrix::generateMineMatrix(sf::Vector2i mouseIndexPos){
-    cout << "Generating mine matrix" << endl;
+    // Generating mine matrix
     vector<int> tempVector;
     vector<vector<int>> tempMatrix;
 
@@ -250,7 +250,6 @@ void gameMatrix::generateMineMatrix(sf::Vector2i mouseIndexPos){
 
 
     if (markedCellsMatrix.size() == 0){     // initializing marked cells matrix
-        cout << "Initializing marked matrix" << endl;
         for (i=0; i<mineAmtMatrix.size(); i++){
             for (j=0; j<mineAmtMatrix[i].size(); j++){
                 tempVectorBool.push_back(false);
@@ -259,14 +258,12 @@ void gameMatrix::generateMineMatrix(sf::Vector2i mouseIndexPos){
             tempVectorBool.clear();
         }
         markedCellsMatrix = tempMatrixBool;
-        cout << markedCellsMatrix.size() << endl;
     }
 
     tempVectorBool.clear();
     tempMatrixBool.clear();
 
     if (revealedCellMatrix.size() == 0){     // initializing revealed cells matrix
-        cout << "Initializing revealed matrix" << endl;
         for (i=0; i<mineAmtMatrix.size(); i++){
             for (j=0; j<mineAmtMatrix[i].size(); j++){
                 tempVectorBool.push_back(false);
@@ -275,7 +272,6 @@ void gameMatrix::generateMineMatrix(sf::Vector2i mouseIndexPos){
             tempVectorBool.clear();
         }
         revealedCellMatrix = tempMatrixBool;
-        cout << revealedCellMatrix.size() << endl;
     }
 
     // Code to print the matrix (debug)
@@ -310,15 +306,15 @@ bool gameMatrix::checkMarking(sf::Vector2i mouseIndexPos){
         }
     }
 
-    for (i=0; i<mineAmtMatrix.size(); i++){
+    // Debug code to print matrices
+    /*for (i=0; i<mineAmtMatrix.size(); i++){
         for (j=0; j<mineAmtMatrix[i].size(); j++){
             cout << mineAmtMatrix[i][j] << "\t";
         }
         cout << endl;
     }
 
-    // Debug code to print matrix
-    /*for (i=0; i<markedCellsMatrix.size(); i++){
+    for (i=0; i<markedCellsMatrix.size(); i++){
         for (j=0; j<markedCellsMatrix[i].size(); j++){
             cout << markedCellsMatrix[i][j] << "\t";
         }
@@ -338,19 +334,17 @@ int gameMatrix::checkAction(sf::Vector2i mouseIndexPos){
         Numbered but not empty space (>0): 3
     */
     int result=0;
-        cout << "Checking actions" << endl;
 
         if (mineAmtMatrix[mouseIndexPos.y][mouseIndexPos.x] == -1){
-            cout << "Mine" << endl;
+            // Mine clicked
             result = 0;
         }else{
             if (markedCellsMatrix[mouseIndexPos.y][mouseIndexPos.x] == true){
                 if (mineAmtMatrix[mouseIndexPos.y][mouseIndexPos.x] == -2){
-                    cout << "Marked mine was clicked" << endl;
+                    // Marked mine was clicked
                     mineAmtMatrix[mouseIndexPos.y][mouseIndexPos.x] = -1;
-                }else{
-                    cout << "Marked square was clicked" << endl;
                 }
+                // Marked square was clicked
                 result = 1;
 
             }else{
@@ -384,8 +378,6 @@ void gameMatrix::checkRevealed(sf::Vector2i mouseIndexPos){
     */
 
     if (markedCellsMatrix[mouseIndexPos.y][mouseIndexPos.x] == false){
-        cout << revealedCellMatrix.size() << endl;
-        cout << mouseIndexPos.y << " x " << mouseIndexPos.x << endl;
         revealedCellMatrix[mouseIndexPos.y][mouseIndexPos.x] = true;
     }
 
@@ -394,7 +386,6 @@ void gameMatrix::checkRevealed(sf::Vector2i mouseIndexPos){
         for (j=0; j<revealedCellMatrix[i].size(); j++){
 
             if (mineAmtMatrix[i][j] == 0){
-                cout << "Position " << i << " x " << j << endl;
                 revealedCellMatrix[i][j] = true;
 
                 if (i>0){   // top 3 squares above mine (NW, N, NE)
@@ -425,13 +416,14 @@ void gameMatrix::checkRevealed(sf::Vector2i mouseIndexPos){
             }
         }
     }
-
-    for (i=0; i<revealedCellMatrix.size(); i++){
+    
+    // DEBUG: Prints revealed matrix every time the user right-clicks
+    /*for (i=0; i<revealedCellMatrix.size(); i++){
         for (j=0; j<revealedCellMatrix[i].size(); j++){
             cout << revealedCellMatrix[i][j] << "\t";
         }
         cout << endl;
-    }
+    }*/
 
 }
 
@@ -450,6 +442,7 @@ void showMessage(string message, int duration_secs, int unsigned charSize_px=0, 
     sf::Font pixelFont;
     if (!pixelFont.loadFromFile(PIXEL_FONT_PATH)){
         cout << "Pixel font not found" << endl;
+        msgWindow.close();
     }
 
     sf::Text msgText(message, pixelFont, charSize_px);
@@ -464,11 +457,17 @@ void showMessage(string message, int duration_secs, int unsigned charSize_px=0, 
     sf::Texture beachTexture;
     if(!beachTexture.loadFromFile(END_BACKGROUND_TEXTURE_PATH)){
         cout << "Background texture not found" << endl;
+        msgWindow.close();
     }
     sf::Sprite beachSprite(beachTexture);       // create wave sprite as well
-    beachSprite.setTextureRect(sf::IntRect(sf::Vector2i(END_BG_IMG_SIZE.x, 0), END_BG_IMG_SIZE));
+    beachSprite.setTextureRect(sf::IntRect(sf::Vector2i(0, 0), END_BG_IMG_SIZE));
     beachSprite.setScale(sf::Vector2f(msgWindow.getSize().x / END_BG_IMG_SIZE.x, msgWindow.getSize().y / END_BG_IMG_SIZE.y));
-    beachSprite.setPosition(sf::Vector2f(0, msgWindow.getSize().y - (END_BG_IMG_SIZE.y*beachSprite.getScale().y)));
+    beachSprite.setPosition(sf::Vector2f(0, msgWindow.getSize().y - (END_BG_IMG_SIZE.y*beachSprite.getScale().y)/1.5));
+
+    sf::Sprite waveSprite(beachTexture);       // create wave sprite as well
+    waveSprite.setTextureRect(sf::IntRect(sf::Vector2i(END_BG_IMG_SIZE.x, 0), END_BG_IMG_SIZE));
+    waveSprite.setScale(sf::Vector2f(msgWindow.getSize().x / END_BG_IMG_SIZE.x, msgWindow.getSize().y / END_BG_IMG_SIZE.y));
+    waveSprite.setPosition(sf::Vector2f(0, msgWindow.getSize().y - (END_BG_IMG_SIZE.y*waveSprite.getScale().y)));
 
     while (msgWindow.isOpen()){
         sf::Event event;
@@ -484,9 +483,9 @@ void showMessage(string message, int duration_secs, int unsigned charSize_px=0, 
         }
         
         if (!moveUp){
-            beachSprite.setPosition(sf::Vector2f(beachSprite.getPosition().x, beachSprite.getPosition().y+1));
+            waveSprite.setPosition(sf::Vector2f(waveSprite.getPosition().x, waveSprite.getPosition().y+1));
         }else{
-            beachSprite.setPosition(sf::Vector2f(beachSprite.getPosition().x, beachSprite.getPosition().y-1));
+            waveSprite.setPosition(sf::Vector2f(waveSprite.getPosition().x, waveSprite.getPosition().y-1));
         }
 
         if ((count%MAX_FRAMERATE == 0) && !moveUp && (count/MAX_FRAMERATE)%2 == 0){        // On odd seconds do this
@@ -499,6 +498,7 @@ void showMessage(string message, int duration_secs, int unsigned charSize_px=0, 
 
         msgWindow.clear(END_BG_COLOR);
         msgWindow.draw(beachSprite);
+        msgWindow.draw(waveSprite);
         msgWindow.draw(msgText);
 
         msgWindow.display();
@@ -554,92 +554,91 @@ bool mineGame(){
             if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Left) && !closeGame){
                 if (matx.getMineMatrix().size() == 0){
                     matx.generateMineMatrix(matxRectIndexPos);
-                }else{
-                    cout << "Matrix already generated" << endl;
-                    clickAction = matx.checkAction(matxRectIndexPos);
-                    switch (clickAction)
-                    {
-                    case 0:     // Unmarked mine clicked
-                        // cout << "Unmarked mine clicked" << endl;
-                        window.close();
-                        returnValue = false;
-                        break;
-                    case 1:     // Marked square (mine or not) clicked
-                        // cout << "Marked square clicked" << endl;
-                        for (i=0; i<markedSquares.size(); i++){
-                            if (markedSquares[i].getPosition().x == (matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].x) && markedSquares[i].getPosition().y == (matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].y+1)){
-                                squareIndex = i;
-                            }
-                        }
-                        if (squareIndex != -1){     // squareIndex will be -1 if marked square was not found (shouldn't happen)
-                            markedSquares.erase(markedSquares.begin()+squareIndex);
-                            markedSquaresToDraw.erase(markedSquaresToDraw.begin()+squareIndex);
-                        }
-                        squareIndex = -1;   // resets squareIndex in case it is needed again later
-                        break;
-                    case 3:     // Numbered space clicked
-                        // cout << "Numbered space clicked" << endl;
-
-                        squareLabels.push_back(sf::Text(to_string(matx.getMineMatrix()[matxRectIndexPos.y][matxRectIndexPos.x]), pixelFont, matx.getDivWidth().x*0.9));
-                        squareLabelsToDraw.push_back(&(squareLabels[squareLabels.size()-1]));
-
-                        squareLabelsToDraw[squareLabels.size()-1]->setFillColor(NORMAL_TEXT_COLOR);
-                        squareLabelsToDraw[squareLabels.size()-1]->setPosition(sf::Vector2f((matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].x+(matx.getDivWidth().x/4)), (matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].y-(matx.getDivWidth().y/8))));
-
-                        markedSquares.push_back(sf::RectangleShape(sf::Vector2f((matx.getDivWidth().x-1), (matx.getDivWidth().y-1))));
-                        markedSquaresToDraw.push_back(&(markedSquares[markedSquares.size()-1]));
-
-                        markedSquaresToDraw[markedSquaresToDraw.size()-1]->setFillColor(CLICKED_SPACE_COLOR);
-                        markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition((matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y]));
-                        markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition(sf::Vector2f(markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().x, markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().y+1));
-                        
-                        break;
-
-                    default:    // Empty space clicked
-                        // cout << "Empty space clicked" << endl;
-
-                        markedSquares.push_back(sf::RectangleShape(sf::Vector2f((matx.getDivWidth().x-1), (matx.getDivWidth().y-1))));
-                        markedSquaresToDraw.push_back(&(markedSquares[markedSquares.size()-1]));
-
-                        markedSquaresToDraw[markedSquaresToDraw.size()-1]->setFillColor(CLICKED_SPACE_COLOR);
-                        markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition((matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y]));
-                        markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition(sf::Vector2f(markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().x, markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().y+1));
-                        
-                        matx.checkRevealed(matxRectIndexPos);
-
-                        for (i=0; i<matx.getRevMatrix().size(); i++){
-                            for (j=0; j<matx.getRevMatrix()[i].size(); j++){
-                                if (matx.getRevMatrix()[i][j]){
-                                    markedSquares.push_back(sf::RectangleShape(sf::Vector2f((matx.getDivWidth().x-1), (matx.getDivWidth().y-1))));
-                                    markedSquaresToDraw.push_back(&(markedSquares[markedSquares.size()-1]));
-
-                                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setFillColor(CLICKED_SPACE_COLOR);
-                                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition((matx.getGridMatrix()[j][i]));
-                                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition(sf::Vector2f(markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().x, markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().y+1));
-
-                                    if (matx.getMineMatrix()[i][j] > 0){
-                                        squareLabels.push_back(sf::Text(to_string(matx.getMineMatrix()[i][j]), pixelFont, matx.getDivWidth().x*0.9));
-                                        squareLabelsToDraw.push_back(&(squareLabels[squareLabels.size()-1]));
-
-                                        squareLabelsToDraw[squareLabels.size()-1]->setFillColor(NORMAL_TEXT_COLOR);
-                                        squareLabelsToDraw[squareLabels.size()-1]->setPosition(sf::Vector2f((matx.getGridMatrix()[j][i].x+(matx.getDivWidth().x/4)), (matx.getGridMatrix()[j][i].y-(matx.getDivWidth().y/8))));
-
-                                    }
-                                    
-                                }
-                            }
-                        }
-                        break;
-                    }
                 }
+                clickAction = matx.checkAction(matxRectIndexPos);
+                switch (clickAction)
+                {
+                case 0:     // Unmarked mine clicked
+                    // cout << "Unmarked mine clicked" << endl;
+                    window.close();
+                    returnValue = false;
+                    break;
+                case 1:     // Marked square (mine or not) clicked
+                    // cout << "Marked square clicked" << endl;
+                    for (i=0; i<markedSquares.size(); i++){
+                        if (markedSquares[i].getPosition().x == (matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].x) && markedSquares[i].getPosition().y == (matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].y+1)){
+                            squareIndex = i;
+                        }
+                    }
+                    if (squareIndex != -1){     // squareIndex will be -1 if marked square was not found (shouldn't happen)
+                        markedSquares.erase(markedSquares.begin()+squareIndex);
+                        markedSquaresToDraw.erase(markedSquaresToDraw.begin()+squareIndex);
+                    }
+                    squareIndex = -1;   // resets squareIndex in case it is needed again later
+                    break;
+                case 3:     // Numbered space clicked
+                    // cout << "Numbered space clicked" << endl;
 
-                for (i=0; i<matx.getMineMatrix().size(); i++){
+                    squareLabels.push_back(sf::Text(to_string(matx.getMineMatrix()[matxRectIndexPos.y][matxRectIndexPos.x]), pixelFont, matx.getDivWidth().x*0.9));
+                    squareLabelsToDraw.push_back(&(squareLabels[squareLabels.size()-1]));
+
+                    squareLabelsToDraw[squareLabels.size()-1]->setFillColor(NORMAL_TEXT_COLOR);
+                    squareLabelsToDraw[squareLabels.size()-1]->setPosition(sf::Vector2f((matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].x+(matx.getDivWidth().x/4)), (matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].y-(matx.getDivWidth().y/8))));
+
+                    markedSquares.push_back(sf::RectangleShape(sf::Vector2f((matx.getDivWidth().x-1), (matx.getDivWidth().y-1))));
+                    markedSquaresToDraw.push_back(&(markedSquares[markedSquares.size()-1]));
+
+                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setFillColor(CLICKED_SPACE_COLOR);
+                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition((matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y]));
+                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition(sf::Vector2f(markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().x, markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().y+1));
+                    
+                    break;
+
+                default:    // Empty space clicked
+                    // cout << "Empty space clicked" << endl;
+
+                    markedSquares.push_back(sf::RectangleShape(sf::Vector2f((matx.getDivWidth().x-1), (matx.getDivWidth().y-1))));
+                    markedSquaresToDraw.push_back(&(markedSquares[markedSquares.size()-1]));
+
+                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setFillColor(CLICKED_SPACE_COLOR);
+                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition((matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y]));
+                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition(sf::Vector2f(markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().x, markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().y+1));
+                    
+                    matx.checkRevealed(matxRectIndexPos);
+
+                    for (i=0; i<matx.getRevMatrix().size(); i++){
+                        for (j=0; j<matx.getRevMatrix()[i].size(); j++){
+                            if (matx.getRevMatrix()[i][j]){
+                                markedSquares.push_back(sf::RectangleShape(sf::Vector2f((matx.getDivWidth().x-1), (matx.getDivWidth().y-1))));
+                                markedSquaresToDraw.push_back(&(markedSquares[markedSquares.size()-1]));
+
+                                markedSquaresToDraw[markedSquaresToDraw.size()-1]->setFillColor(CLICKED_SPACE_COLOR);
+                                markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition((matx.getGridMatrix()[j][i]));
+                                markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition(sf::Vector2f(markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().x, markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().y+1));
+
+                                if (matx.getMineMatrix()[i][j] > 0){
+                                    squareLabels.push_back(sf::Text(to_string(matx.getMineMatrix()[i][j]), pixelFont, matx.getDivWidth().x*0.9));
+                                    squareLabelsToDraw.push_back(&(squareLabels[squareLabels.size()-1]));
+
+                                    squareLabelsToDraw[squareLabels.size()-1]->setFillColor(NORMAL_TEXT_COLOR);
+                                    squareLabelsToDraw[squareLabels.size()-1]->setPosition(sf::Vector2f((matx.getGridMatrix()[j][i].x+(matx.getDivWidth().x/4)), (matx.getGridMatrix()[j][i].y-(matx.getDivWidth().y/8))));
+
+                                }
+                                
+                            }
+                        }
+                    }
+                    break;
+                }
+                
+                // DEBUG: Prints mine matrix every time the user clicks
+                /*for (i=0; i<matx.getMineMatrix().size(); i++){
                     for (j=0; j<matx.getMineMatrix()[i].size(); j++){
                         cout << matx.getMineMatrix()[i][j] << "\t";
                     }
                     cout << endl;
                 }
-                cout << endl;
+                cout << endl;*/
 
             }
             if (matx.getMineMatrix().size() != 0){
@@ -655,7 +654,7 @@ bool mineGame(){
                         }
                     }
                     if (gameWon){       // If gameWon is still true, then no -1's were found (all mines are marked)
-                        cout << "Congrats! you won the game" << endl;
+                        // Game was won, should move to the end screen
                         closeGame = true;
                     }else{
                         gameWon = true;     // Needs to be true for next iteration
@@ -740,14 +739,47 @@ bool mineGame(){
 }
 
 
+int selectDifficulty(){
+    sf::RenderWindow diffWindow(sf::VideoMode(sf::VideoMode::getDesktopMode().height/1.2, sf::VideoMode::getDesktopMode().height/2), "Select difficulty");
+    diffWindow.setFramerateLimit(MAX_FRAMERATE);
+
+    sf::Font pixelFont;
+    if (!pixelFont.loadFromFile(PIXEL_FONT_PATH)){
+        cout << "Pixel font not found" << endl;
+        diffWindow.close();
+    }
+
+    vector<sf::Text> textDiffVector;      // easyText, midText, hardText, titleText
+
+    textDiffVector.push_back(sf::Text("Select difficulty", pixelFont, 45));     // Title
+    textDiffVector.push_back(sf::Text("- Easy", pixelFont, 30));
+    textDiffVector.push_back(sf::Text("- Medium", pixelFont, 30));
+    textDiffVector.push_back(sf::Text("- Hard", pixelFont, 30));
+
+
+    while (diffWindow.isOpen()){
+
+        diffWindow.clear(sf::Color::Black);
+        diffWindow.draw(textDiffVector[0]);
+        diffWindow.display();
+    }
+
+    return 0;
+
+}
+
 int main(){
     bool userWin;
     
-    // userWin = mineGame();
+    selectDifficulty();
+
+    /*userWin = mineGame();
     
     if (userWin){
         showMessage("GAME WON!", 5);
-    }
+    }else{
+        showMessage("YOU LOST!", 5);
+    }*/
 
 
     return 0;
