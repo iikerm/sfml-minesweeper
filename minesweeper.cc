@@ -19,7 +19,7 @@ using namespace std;
 #define CLICKED_SPACE_COLOR sf::Color(255, 230, 180)    // #FFE6B4
 #define MARKED_COLOR sf::Color(100, 171, 227)           // #64ABE3
 
-#define PIXEL_FONT_PATH "../fonts/pixel-font.ttf"
+#define PIXEL_FONT_PATH "fonts/pixel-font.ttf"
 #define END_BACKGROUND_TEXTURE_PATH "assets/tileset.png"
 #define END_BG_IMG_SIZE sf::Vector2i(100, 56)           // Dimensions of end bg image in pixels
 #define END_CRAB_SPRITE_SIZE sf::Vector2i(16, 6)        // Dimensions of end crab sprite in pixels
