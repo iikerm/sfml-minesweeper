@@ -10,7 +10,8 @@ using namespace std;
 #define PERCENTAGE_MINES 0.2                            // % of matrix' cells that will be mines
 
 #define NORMAL_TEXT_COLOR sf::Color(6, 214, 160)        // #06D6A0
-#define ENDGAME_TEXT_COLOR sf::Color(100, 171, 227)     // #64ABE3
+#define ENDGAME_TEXT_COLOR sf::Color(20, 177, 177)      // #14b1b1
+#define HOVER_TEXT_COLOR sf::Color(240, 128, 128)       // #F08080
 
 #define LINE_COLOR sf::Color(200, 160, 95)              // #C8A05F
 #define BG_COLOR sf::Color(250, 210, 160)               // #FAD2A0
@@ -41,6 +42,14 @@ directions oppositeDir(directions currentDir){
             return west;
             break;
     }
+}
+
+
+bool divisible(float num1, float num2){
+
+    cout << num1/num2 << " == " << (float)((int)num1 / (int)num2) << endl;
+
+    return (num1/num2) == (float)((int)num1 / (int)num2);
 }
 
 
@@ -459,12 +468,12 @@ void showMessage(string message, int duration_secs, int unsigned charSize_px=0, 
         cout << "Background texture not found" << endl;
         msgWindow.close();
     }
-    sf::Sprite beachSprite(beachTexture);       // create wave sprite as well
+    sf::Sprite beachSprite(beachTexture);       // beach background
     beachSprite.setTextureRect(sf::IntRect(sf::Vector2i(0, 0), END_BG_IMG_SIZE));
     beachSprite.setScale(sf::Vector2f(msgWindow.getSize().x / END_BG_IMG_SIZE.x, msgWindow.getSize().y / END_BG_IMG_SIZE.y));
     beachSprite.setPosition(sf::Vector2f(0, msgWindow.getSize().y - (END_BG_IMG_SIZE.y*beachSprite.getScale().y)/1.5));
 
-    sf::Sprite waveSprite(beachTexture);       // create wave sprite as well
+    sf::Sprite waveSprite(beachTexture);       // transparent background sea wave
     waveSprite.setTextureRect(sf::IntRect(sf::Vector2i(END_BG_IMG_SIZE.x, 0), END_BG_IMG_SIZE));
     waveSprite.setScale(sf::Vector2f(msgWindow.getSize().x / END_BG_IMG_SIZE.x, msgWindow.getSize().y / END_BG_IMG_SIZE.y));
     waveSprite.setPosition(sf::Vector2f(0, msgWindow.getSize().y - (END_BG_IMG_SIZE.y*waveSprite.getScale().y)));
@@ -509,239 +518,264 @@ void showMessage(string message, int duration_secs, int unsigned charSize_px=0, 
 }
 
 
-bool mineGame(){
+bool mineGame(int diff){
     int long unsigned j=0, i=0;
-    unsigned int count=0, markedCount=0;
+    int unsigned count=0, markedCount=0;
+    int matxSize=0;
+    bool createWindow=true, returnValue=false;
 
-    sf::RenderWindow window(sf::VideoMode(sf::VideoMode::getDesktopMode().height/1.2, sf::VideoMode::getDesktopMode().height/1.2), "");
-    // Window size depends on maximum height for both dimensions, so that the window is aprox. the same size on most displays
-    window.setFramerateLimit(MAX_FRAMERATE);
-
-    gameMatrix matx(window, MATRIX_SIZE);
-    vector<vector<sf::Vertex>> linesVector = matx.getLinesVector();
-    sf::Vertex lineToDraw[2];
-
-    sf::Vector2i mousePos, matxRectIndexPos;
-
-    sf::RectangleShape hoverRect(sf::Vector2f((matx.getDivWidth().x-1), (matx.getDivWidth().y-1)));
-    hoverRect.setFillColor(HOVER_COLOR);
-
-    vector<sf::RectangleShape> markedSquares;
-    vector<sf::RectangleShape *> markedSquaresToDraw;
-
-    vector<sf::Text> squareLabels;
-    vector<sf::Text *> squareLabelsToDraw;
-
-    sf::Font pixelFont;
-    if (!pixelFont.loadFromFile(PIXEL_FONT_PATH)){
-        cout << "Error loading font" << endl;
-        window.close();
+    switch (diff){
+    case 0:     // User exited without choosing
+        createWindow = false;
+    case 1:
+        matxSize = 9;
+        break;
+    case 2:     // Medium
+        matxSize = 15;
+        break;
+    default:    // Hard
+        matxSize = 25;
+        break;
     }
 
-    int clickAction=0, squareIndex=-1;
-    bool checkMarkedSquare=false, revealedSquare=false, gameWon=true, closeGame=false, returnValue=false;
-    
-    while (window.isOpen()){
-        sf::Event event;
-        mousePos = sf::Mouse::getPosition(window);
-        matxRectIndexPos = matx.getMousePosIndex(mousePos);
+    if (createWindow){
+        sf::RenderWindow window(sf::VideoMode(sf::VideoMode::getDesktopMode().height/1.2, sf::VideoMode::getDesktopMode().height/1.2), "");
+        // Window size depends on maximum height for both dimensions, so that the window is aprox. the same size on most displays
+        window.setFramerateLimit(MAX_FRAMERATE);
 
-        while (window.pollEvent(event)){
-            if (event.type == sf::Event::Closed || (event.type == sf::Event::KeyPressed && sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))){
-                window.close();
-            }
+        gameMatrix matx(window, matxSize);
+        vector<vector<sf::Vertex>> linesVector = matx.getLinesVector();
+        sf::Vertex lineToDraw[2];
 
-            if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Left) && !closeGame){
-                if (matx.getMineMatrix().size() == 0){
-                    matx.generateMineMatrix(matxRectIndexPos);
-                }
-                clickAction = matx.checkAction(matxRectIndexPos);
-                switch (clickAction)
-                {
-                case 0:     // Unmarked mine clicked
-                    // cout << "Unmarked mine clicked" << endl;
+        sf::Vector2i mousePos, matxRectIndexPos;
+
+        sf::RectangleShape hoverRect(sf::Vector2f((matx.getDivWidth().x-1), (matx.getDivWidth().y-1)));
+        hoverRect.setFillColor(HOVER_COLOR);
+
+        vector<sf::RectangleShape> markedSquares;
+        vector<sf::RectangleShape *> markedSquaresToDraw;
+
+        vector<sf::Text> squareLabels;
+        vector<sf::Text *> squareLabelsToDraw;
+
+        sf::Font pixelFont;
+        if (!pixelFont.loadFromFile(PIXEL_FONT_PATH)){
+            cout << "Error loading font" << endl;
+            window.close();
+        }
+
+        int clickAction=0, squareIndex=-1;
+        bool checkMarkedSquare=false, revealedSquare=false, gameWon=true, closeGame=false;
+        
+        while (window.isOpen()){
+            sf::Event event;
+            mousePos = sf::Mouse::getPosition(window);
+            matxRectIndexPos = matx.getMousePosIndex(mousePos);
+
+            while (window.pollEvent(event)){
+                if (event.type == sf::Event::Closed || (event.type == sf::Event::KeyPressed && sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))){
                     window.close();
-                    returnValue = false;
-                    break;
-                case 1:     // Marked square (mine or not) clicked
-                    // cout << "Marked square clicked" << endl;
-                    for (i=0; i<markedSquares.size(); i++){
-                        if (markedSquares[i].getPosition().x == (matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].x) && markedSquares[i].getPosition().y == (matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].y+1)){
-                            squareIndex = i;
-                        }
-                    }
-                    if (squareIndex != -1){     // squareIndex will be -1 if marked square was not found (shouldn't happen)
-                        markedSquares.erase(markedSquares.begin()+squareIndex);
-                        markedSquaresToDraw.erase(markedSquaresToDraw.begin()+squareIndex);
-                    }
-                    squareIndex = -1;   // resets squareIndex in case it is needed again later
-                    break;
-                case 3:     // Numbered space clicked
-                    // cout << "Numbered space clicked" << endl;
-
-                    squareLabels.push_back(sf::Text(to_string(matx.getMineMatrix()[matxRectIndexPos.y][matxRectIndexPos.x]), pixelFont, matx.getDivWidth().x*0.9));
-                    squareLabelsToDraw.push_back(&(squareLabels[squareLabels.size()-1]));
-
-                    squareLabelsToDraw[squareLabels.size()-1]->setFillColor(NORMAL_TEXT_COLOR);
-                    squareLabelsToDraw[squareLabels.size()-1]->setPosition(sf::Vector2f((matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].x+(matx.getDivWidth().x/4)), (matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].y-(matx.getDivWidth().y/8))));
-
-                    markedSquares.push_back(sf::RectangleShape(sf::Vector2f((matx.getDivWidth().x-1), (matx.getDivWidth().y-1))));
-                    markedSquaresToDraw.push_back(&(markedSquares[markedSquares.size()-1]));
-
-                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setFillColor(CLICKED_SPACE_COLOR);
-                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition((matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y]));
-                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition(sf::Vector2f(markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().x, markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().y+1));
-                    
-                    break;
-
-                default:    // Empty space clicked
-                    // cout << "Empty space clicked" << endl;
-
-                    markedSquares.push_back(sf::RectangleShape(sf::Vector2f((matx.getDivWidth().x-1), (matx.getDivWidth().y-1))));
-                    markedSquaresToDraw.push_back(&(markedSquares[markedSquares.size()-1]));
-
-                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setFillColor(CLICKED_SPACE_COLOR);
-                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition((matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y]));
-                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition(sf::Vector2f(markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().x, markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().y+1));
-                    
-                    matx.checkRevealed(matxRectIndexPos);
-
-                    for (i=0; i<matx.getRevMatrix().size(); i++){
-                        for (j=0; j<matx.getRevMatrix()[i].size(); j++){
-                            if (matx.getRevMatrix()[i][j]){
-                                markedSquares.push_back(sf::RectangleShape(sf::Vector2f((matx.getDivWidth().x-1), (matx.getDivWidth().y-1))));
-                                markedSquaresToDraw.push_back(&(markedSquares[markedSquares.size()-1]));
-
-                                markedSquaresToDraw[markedSquaresToDraw.size()-1]->setFillColor(CLICKED_SPACE_COLOR);
-                                markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition((matx.getGridMatrix()[j][i]));
-                                markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition(sf::Vector2f(markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().x, markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().y+1));
-
-                                if (matx.getMineMatrix()[i][j] > 0){
-                                    squareLabels.push_back(sf::Text(to_string(matx.getMineMatrix()[i][j]), pixelFont, matx.getDivWidth().x*0.9));
-                                    squareLabelsToDraw.push_back(&(squareLabels[squareLabels.size()-1]));
-
-                                    squareLabelsToDraw[squareLabels.size()-1]->setFillColor(NORMAL_TEXT_COLOR);
-                                    squareLabelsToDraw[squareLabels.size()-1]->setPosition(sf::Vector2f((matx.getGridMatrix()[j][i].x+(matx.getDivWidth().x/4)), (matx.getGridMatrix()[j][i].y-(matx.getDivWidth().y/8))));
-
-                                }
-                                
-                            }
-                        }
-                    }
-                    break;
                 }
-                
-                // DEBUG: Prints mine matrix every time the user clicks
-                /*for (i=0; i<matx.getMineMatrix().size(); i++){
-                    for (j=0; j<matx.getMineMatrix()[i].size(); j++){
-                        cout << matx.getMineMatrix()[i][j] << "\t";
+
+                if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Left) && !closeGame){
+                    if (matx.getMineMatrix().size() == 0){
+                        matx.generateMineMatrix(matxRectIndexPos);
                     }
-                    cout << endl;
-                }
-                cout << endl;*/
-
-            }
-            if (matx.getMineMatrix().size() != 0){
-                if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Right) && !closeGame){
-                    checkMarkedSquare = matx.checkMarking(matxRectIndexPos);
-
-                    // Search for any -1 s, if none, the user has won
-                    for (i=0; i<matx.getMineMatrix().size(); i++){
-                        for (j=0; j<matx.getMineMatrix()[i].size(); j++){
-                            if(matx.getMineMatrix()[i][j] == -1){
-                                gameWon = false;
-                            }
-                        }
-                    }
-                    if (gameWon){       // If gameWon is still true, then no -1's were found (all mines are marked)
-                        // Game was won, should move to the end screen
-                        closeGame = true;
-                    }else{
-                        gameWon = true;     // Needs to be true for next iteration
-                    }
-
-                    if (checkMarkedSquare){
-                        markedCount++;
-                        markedSquares.push_back(sf::RectangleShape(sf::Vector2f((matx.getDivWidth().x-1), (matx.getDivWidth().y-1))));
-                        markedSquaresToDraw.push_back(&(markedSquares[markedSquares.size()-1]));
-
-                        markedSquaresToDraw[markedSquaresToDraw.size()-1]->setFillColor(MARKED_COLOR);
-                        markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition((matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y]));
-                        markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition(sf::Vector2f(markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().x, markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().y+1));
-                    }else{
+                    clickAction = matx.checkAction(matxRectIndexPos);
+                    switch (clickAction)
+                    {
+                    case 0:     // Unmarked mine clicked
+                        // cout << "Unmarked mine clicked" << endl;
+                        window.close();
+                        returnValue = false;
+                        break;
+                    case 1:     // Marked square (mine or not) clicked
+                        // cout << "Marked square clicked" << endl;
                         for (i=0; i<markedSquares.size(); i++){
                             if (markedSquares[i].getPosition().x == (matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].x) && markedSquares[i].getPosition().y == (matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].y+1)){
                                 squareIndex = i;
                             }
                         }
                         if (squareIndex != -1){     // squareIndex will be -1 if marked square was not found (shouldn't happen)
-                            markedCount--;
                             markedSquares.erase(markedSquares.begin()+squareIndex);
                             markedSquaresToDraw.erase(markedSquaresToDraw.begin()+squareIndex);
                         }
-                        squareIndex = -1;
+                        squareIndex = -1;   // resets squareIndex in case it is needed again later
+                        break;
+                    case 3:     // Numbered space clicked
+                        // cout << "Numbered space clicked" << endl;
+
+                        squareLabels.push_back(sf::Text(to_string(matx.getMineMatrix()[matxRectIndexPos.y][matxRectIndexPos.x]), pixelFont, matx.getDivWidth().x*0.9));
+                        squareLabelsToDraw.push_back(&(squareLabels[squareLabels.size()-1]));
+
+                        squareLabelsToDraw[squareLabels.size()-1]->setFillColor(NORMAL_TEXT_COLOR);
+                        squareLabelsToDraw[squareLabels.size()-1]->setPosition(sf::Vector2f((matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].x+(matx.getDivWidth().x/4)), (matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].y-(matx.getDivWidth().y/8))));
+
+                        markedSquares.push_back(sf::RectangleShape(sf::Vector2f((matx.getDivWidth().x-1), (matx.getDivWidth().y-1))));
+                        markedSquaresToDraw.push_back(&(markedSquares[markedSquares.size()-1]));
+
+                        markedSquaresToDraw[markedSquaresToDraw.size()-1]->setFillColor(CLICKED_SPACE_COLOR);
+                        markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition((matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y]));
+                        markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition(sf::Vector2f(markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().x, markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().y+1));
+                        
+                        break;
+
+                    default:    // Empty space clicked
+                        // cout << "Empty space clicked" << endl;
+
+                        markedSquares.push_back(sf::RectangleShape(sf::Vector2f((matx.getDivWidth().x-1), (matx.getDivWidth().y-1))));
+                        markedSquaresToDraw.push_back(&(markedSquares[markedSquares.size()-1]));
+
+                        markedSquaresToDraw[markedSquaresToDraw.size()-1]->setFillColor(CLICKED_SPACE_COLOR);
+                        markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition((matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y]));
+                        markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition(sf::Vector2f(markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().x, markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().y+1));
+                        
+                        matx.checkRevealed(matxRectIndexPos);
+
+                        for (i=0; i<matx.getRevMatrix().size(); i++){
+                            for (j=0; j<matx.getRevMatrix()[i].size(); j++){
+                                if (matx.getRevMatrix()[i][j]){
+                                    markedSquares.push_back(sf::RectangleShape(sf::Vector2f((matx.getDivWidth().x-1), (matx.getDivWidth().y-1))));
+                                    markedSquaresToDraw.push_back(&(markedSquares[markedSquares.size()-1]));
+
+                                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setFillColor(CLICKED_SPACE_COLOR);
+                                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition((matx.getGridMatrix()[j][i]));
+                                    markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition(sf::Vector2f(markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().x, markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().y+1));
+
+                                    if (matx.getMineMatrix()[i][j] > 0){
+                                        squareLabels.push_back(sf::Text(to_string(matx.getMineMatrix()[i][j]), pixelFont, matx.getDivWidth().x*0.9));
+                                        squareLabelsToDraw.push_back(&(squareLabels[squareLabels.size()-1]));
+
+                                        squareLabelsToDraw[squareLabels.size()-1]->setFillColor(NORMAL_TEXT_COLOR);
+                                        squareLabelsToDraw[squareLabels.size()-1]->setPosition(sf::Vector2f((matx.getGridMatrix()[j][i].x+(matx.getDivWidth().x/4)), (matx.getGridMatrix()[j][i].y-(matx.getDivWidth().y/8))));
+
+                                    }
+                                    
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    
+                    // DEBUG: Prints mine matrix every time the user clicks
+                    /*for (i=0; i<matx.getMineMatrix().size(); i++){
+                        for (j=0; j<matx.getMineMatrix()[i].size(); j++){
+                            cout << matx.getMineMatrix()[i][j] << "\t";
+                        }
+                        cout << endl;
+                    }
+                    cout << endl;*/
+
+                }
+                if (matx.getMineMatrix().size() != 0){
+                    if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Right) && !closeGame){
+                        checkMarkedSquare = matx.checkMarking(matxRectIndexPos);
+
+                        // Search for any -1 s, if none, the user has won
+                        for (i=0; i<matx.getMineMatrix().size(); i++){
+                            for (j=0; j<matx.getMineMatrix()[i].size(); j++){
+                                if(matx.getMineMatrix()[i][j] == -1){
+                                    gameWon = false;
+                                }
+                            }
+                        }
+                        if (gameWon){       // If gameWon is still true, then no -1's were found (all mines are marked)
+                            // Game was won, should move to the end screen
+                            closeGame = true;
+                        }else{
+                            gameWon = true;     // Needs to be true for next iteration
+                        }
+
+                        if (checkMarkedSquare){
+                            markedCount++;
+                            markedSquares.push_back(sf::RectangleShape(sf::Vector2f((matx.getDivWidth().x-1), (matx.getDivWidth().y-1))));
+                            markedSquaresToDraw.push_back(&(markedSquares[markedSquares.size()-1]));
+
+                            markedSquaresToDraw[markedSquaresToDraw.size()-1]->setFillColor(MARKED_COLOR);
+                            markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition((matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y]));
+                            markedSquaresToDraw[markedSquaresToDraw.size()-1]->setPosition(sf::Vector2f(markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().x, markedSquaresToDraw[markedSquaresToDraw.size()-1]->getPosition().y+1));
+                        }else{
+                            for (i=0; i<markedSquares.size(); i++){
+                                if (markedSquares[i].getPosition().x == (matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].x) && markedSquares[i].getPosition().y == (matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y].y+1)){
+                                    squareIndex = i;
+                                }
+                            }
+                            if (squareIndex != -1){     // squareIndex will be -1 if marked square was not found (shouldn't happen)
+                                markedCount--;
+                                markedSquares.erase(markedSquares.begin()+squareIndex);
+                                markedSquaresToDraw.erase(markedSquaresToDraw.begin()+squareIndex);
+                            }
+                            squareIndex = -1;
+                        }
                     }
                 }
             }
-        }
-        
-        hoverRect.setPosition((matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y]));
-        hoverRect.setPosition(sf::Vector2f(hoverRect.getPosition().x, hoverRect.getPosition().y+1));
+            
+            hoverRect.setPosition((matx.getGridMatrix()[matxRectIndexPos.x][matxRectIndexPos.y]));
+            hoverRect.setPosition(sf::Vector2f(hoverRect.getPosition().x, hoverRect.getPosition().y+1));
 
-        window.clear(BG_COLOR);
+            window.clear(BG_COLOR);
 
-        for (i=0; i<linesVector.size(); i++){
-            lineToDraw[0] = linesVector[i][0];
-            lineToDraw[1] = linesVector[i][1];
-            window.draw(lineToDraw, 2, sf::Lines);
-        }
-
-        if (!(mousePos.x > window.getSize().x) && !(mousePos.y > window.getSize().y)){
-            // if mouse is not outside window, then draw the hover rectangle
-            window.draw(hoverRect);
-        }
-
-        if (markedSquares.size() != 0){
-            for (i=0; i<markedSquares.size(); i++){
-                window.draw(((markedSquares[i])));
+            for (i=0; i<linesVector.size(); i++){
+                lineToDraw[0] = linesVector[i][0];
+                lineToDraw[1] = linesVector[i][1];
+                window.draw(lineToDraw, 2, sf::Lines);
             }
-        }
 
-        if (squareLabels.size() != 0){
-            for (i=0; i<squareLabels.size(); i++){
-                window.draw(squareLabels[i]);
+            if (!(mousePos.x > window.getSize().x) && !(mousePos.y > window.getSize().y)){
+                // if mouse is not outside window, then draw the hover rectangle
+                window.draw(hoverRect);
             }
-        }
 
-        window.display();
-
-        if (count == UINT32_MAX){
-            count = 0;
-        }
-
-        if (closeGame){
-            count++;
-            window.setTitle("Congratulations, you won the game!");
-
-            if (count == MAX_FRAMERATE*1){      // framerate (frames / second) * 1  ==  1 second
-                window.close();
-                returnValue = true;
+            if (markedSquares.size() != 0){
+                for (i=0; i<markedSquares.size(); i++){
+                    window.draw(((markedSquares[i])));
+                }
             }
-        }else{
-            if (matx.numberOfMines == -1){
-                window.setTitle("Playing on a " + to_string(matx.getGridMatrix().size()) + "x" + to_string(matx.getGridMatrix().size()) + " mine field");
+
+            if (squareLabels.size() != 0){
+                for (i=0; i<squareLabels.size(); i++){
+                    window.draw(squareLabels[i]);
+                }
+            }
+
+            window.display();
+
+            if (count == UINT32_MAX){
+                count = 0;
+            }
+
+            if (closeGame){
+                count++;
+                window.setTitle("Congratulations, you won the game!");
+
+                if (count == MAX_FRAMERATE*1){      // framerate (frames / second) * 1  ==  1 second
+                    window.close();
+                    returnValue = true;
+                }
             }else{
-                window.setTitle("Playing on a " + to_string(matx.getGridMatrix().size()) + "x" + to_string(matx.getGridMatrix().size()) + " mine field,  " + to_string(markedCount) + " / " + to_string(matx.numberOfMines) + " marks placed");
+                if (matx.numberOfMines == -1){
+                    window.setTitle("Playing on a " + to_string(matx.getGridMatrix().size()) + "x" + to_string(matx.getGridMatrix().size()) + " mine field");
+                }else{
+                    window.setTitle("Playing on a " + to_string(matx.getGridMatrix().size()) + "x" + to_string(matx.getGridMatrix().size()) + " mine field,  " + to_string(markedCount) + " / " + to_string(matx.numberOfMines) + " marks placed");
+                }
             }
         }
     }
+
     return returnValue;
 }
 
 
 int selectDifficulty(){
+    int long unsigned i=0, count=0;
+    int diff=0;
+    bool moveUp=true;
+
     sf::RenderWindow diffWindow(sf::VideoMode(sf::VideoMode::getDesktopMode().height/1.2, sf::VideoMode::getDesktopMode().height/2), "Select difficulty");
     diffWindow.setFramerateLimit(MAX_FRAMERATE);
+
+    sf::Vector2i mousePos;
 
     sf::Font pixelFont;
     if (!pixelFont.loadFromFile(PIXEL_FONT_PATH)){
@@ -750,36 +784,108 @@ int selectDifficulty(){
     }
 
     vector<sf::Text> textDiffVector;      // easyText, midText, hardText, titleText
+    vector<sf::Text*> textPointerVector;
+    vector<sf::FloatRect> globalBoundsVector;
 
     textDiffVector.push_back(sf::Text("Select difficulty", pixelFont, 45));     // Title
-    textDiffVector.push_back(sf::Text("- Easy", pixelFont, 30));
-    textDiffVector.push_back(sf::Text("- Medium", pixelFont, 30));
-    textDiffVector.push_back(sf::Text("- Hard", pixelFont, 30));
+    textDiffVector.push_back(sf::Text("- Easy", pixelFont, 30));                // ⛱️
+    textDiffVector.push_back(sf::Text("- Medium", pixelFont, 30));              // 🏓
+    textDiffVector.push_back(sf::Text("- Hard", pixelFont, 30));                // 🏐
+
+    for (i=0; i<textDiffVector.size(); i++){
+        textPointerVector.push_back(&textDiffVector[i]);
+        textPointerVector[i]->setFillColor(ENDGAME_TEXT_COLOR);
+        textPointerVector[i]->setPosition(sf::Vector2f(diffWindow.getSize().x/15, (diffWindow.getSize().y/4)*i));
+
+        globalBoundsVector.push_back(textDiffVector[i].getGlobalBounds());
+    }
+
+    sf::Texture beachTexture;
+    if(!beachTexture.loadFromFile(END_BACKGROUND_TEXTURE_PATH)){
+        cout << "Background texture not found" << endl;
+        diffWindow.close();
+    }
+    sf::Sprite beachSprite(beachTexture);       // beach background
+    beachSprite.setTextureRect(sf::IntRect(sf::Vector2i(0, 0), END_BG_IMG_SIZE));
+    beachSprite.setScale(sf::Vector2f(diffWindow.getSize().x / END_BG_IMG_SIZE.x, diffWindow.getSize().y / END_BG_IMG_SIZE.y));
+    beachSprite.setPosition(sf::Vector2f(0, diffWindow.getSize().y - (END_BG_IMG_SIZE.y*beachSprite.getScale().y)/1.5));
+
+    sf::Sprite waveSprite(beachTexture);       // transparent background sea wave
+    waveSprite.setTextureRect(sf::IntRect(sf::Vector2i(END_BG_IMG_SIZE.x, 0), END_BG_IMG_SIZE));
+    waveSprite.setScale(sf::Vector2f(diffWindow.getSize().x / END_BG_IMG_SIZE.x, diffWindow.getSize().y / END_BG_IMG_SIZE.y));
+    waveSprite.setPosition(sf::Vector2f(0, diffWindow.getSize().y - (END_BG_IMG_SIZE.y*waveSprite.getScale().y)));
 
 
     while (diffWindow.isOpen()){
+        sf::Event event;
+        mousePos = sf::Mouse::getPosition(diffWindow);
 
-        diffWindow.clear(sf::Color::Black);
-        diffWindow.draw(textDiffVector[0]);
+        while (diffWindow.pollEvent(event)){
+            if (event.type == sf::Event::Closed || (event.type == sf::Event::KeyPressed && sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))){
+                diffWindow.close();
+            }
+            for (i=0; i<textDiffVector.size(); i++){
+                if (i!=0){
+                    if (globalBoundsVector[i].contains(sf::Vector2f(mousePos.x, mousePos.y))){
+                        textPointerVector[i]->setFillColor(HOVER_TEXT_COLOR);
+                        if (event.type == sf::Event::MouseButtonPressed && sf::Mouse::isButtonPressed(sf::Mouse::Left)){
+                            diff = i;
+                            diffWindow.close();
+                        }
+                    }else{
+                        textPointerVector[i]->setFillColor(ENDGAME_TEXT_COLOR);
+                    }
+                }
+            }
+        }
+        if (!moveUp){
+            waveSprite.setPosition(sf::Vector2f(waveSprite.getPosition().x, waveSprite.getPosition().y+0.5));
+        }else{
+            waveSprite.setPosition(sf::Vector2f(waveSprite.getPosition().x, waveSprite.getPosition().y-0.5));
+        }
+
+        if ((count%MAX_FRAMERATE == 0) && (count/MAX_FRAMERATE)%2 == 0 && !moveUp){        // On odd seconds do this
+            moveUp = true;
+        }else{
+            if (count%MAX_FRAMERATE == 0 && moveUp){                                      // On even ones do this
+                moveUp = false;
+            }
+        }
+
+        diffWindow.clear(END_BG_COLOR);
+        diffWindow.draw(beachSprite);
+        diffWindow.draw(waveSprite);
+
+        for (i=0; i<textDiffVector.size(); i++){
+            diffWindow.draw(*textPointerVector[i]);
+        }
+        
         diffWindow.display();
+
+        count++;
+        if (count == UINT32_MAX){
+            count = 0;
+        }
     }
 
-    return 0;
+    return diff;
 
 }
 
 int main(){
     bool userWin;
+    int diff=0;
     
-    selectDifficulty();
+    diff = selectDifficulty();
 
-    /*userWin = mineGame();
+    userWin = mineGame(diff);
     
     if (userWin){
         showMessage("GAME WON!", 5);
     }else{
         showMessage("YOU LOST!", 5);
-    }*/
+    }
+
 
 
     return 0;
