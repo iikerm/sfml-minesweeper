@@ -1,8 +1,17 @@
-# sfml-minesweeper
+# SFML Minesweeper
 
 This is a version of the minesweeper game that I made
 on my own in order to practice using C++ classes and the SFML
-library. Feel free to download and modify the code as you wish
+library.
+ 
+For this game I tried to inspire myself on a 'beach' landscape
+instead of making your normal gray background simple af minesweeper, 
+it also has a difficulty selector screen in order to change the size
+of the mine matrix that is being generated, as well as various sprites 
+that are taken out of a same tileset texture, which makes reading the 
+code good practice for learning the SFML library.
+ 
+Feel free to download and modify the code as you wish.
 
 ---
 # Compiling on Ubuntu
