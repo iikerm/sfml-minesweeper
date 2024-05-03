@@ -22,6 +22,7 @@ using namespace std;
 #define PIXEL_FONT_PATH "../fonts/pixel-font.ttf"
 #define END_BACKGROUND_TEXTURE_PATH "assets/tileset.png"
 #define END_BG_IMG_SIZE sf::Vector2i(100, 56)           // Dimensions of end bg image in pixels
+#define END_CRAB_SPRITE_SIZE sf::Vector2i(16, 6)        // Dimensions of end crab sprite in pixels
 #define END_BG_COLOR sf::Color(255, 230, 180)           // #FFE6B4
 
 
@@ -468,15 +469,21 @@ void showMessage(string message, int duration_secs, int unsigned charSize_px=0, 
         cout << "Background texture not found" << endl;
         msgWindow.close();
     }
+
     sf::Sprite beachSprite(beachTexture);       // beach background
     beachSprite.setTextureRect(sf::IntRect(sf::Vector2i(0, 0), END_BG_IMG_SIZE));
     beachSprite.setScale(sf::Vector2f(msgWindow.getSize().x / END_BG_IMG_SIZE.x, msgWindow.getSize().y / END_BG_IMG_SIZE.y));
     beachSprite.setPosition(sf::Vector2f(0, msgWindow.getSize().y - (END_BG_IMG_SIZE.y*beachSprite.getScale().y)/1.5));
 
-    sf::Sprite waveSprite(beachTexture);       // transparent background sea wave
-    waveSprite.setTextureRect(sf::IntRect(sf::Vector2i(END_BG_IMG_SIZE.x, 0), END_BG_IMG_SIZE));
+    sf::Sprite crabSprite(beachTexture);        // small crab
+    crabSprite.setTextureRect(sf::IntRect(sf::Vector2i((END_BG_IMG_SIZE.x*2 - END_CRAB_SPRITE_SIZE.x), 0), END_CRAB_SPRITE_SIZE));
+    crabSprite.setScale(sf::Vector2f(msgWindow.getSize().x / END_BG_IMG_SIZE.x, msgWindow.getSize().y / END_BG_IMG_SIZE.y));
+    crabSprite.setPosition(sf::Vector2f(msgWindow.getSize().x - (END_CRAB_SPRITE_SIZE.x*10), END_CRAB_SPRITE_SIZE.y*3));     // diffWindow.getSize().x - END_CRAB_SPRITE_SIZE.x*2, diffWindow.getSize().y - END_CRAB_SPRITE_SIZE.y*2)
+
+    sf::Sprite waveSprite(beachTexture);        // transparent background sea wave
+    waveSprite.setTextureRect(sf::IntRect(sf::Vector2i(END_BG_IMG_SIZE.x, END_BG_IMG_SIZE.y*0.4), sf::Vector2i(END_BG_IMG_SIZE.x, END_BG_IMG_SIZE.y*0.6)));
     waveSprite.setScale(sf::Vector2f(msgWindow.getSize().x / END_BG_IMG_SIZE.x, msgWindow.getSize().y / END_BG_IMG_SIZE.y));
-    waveSprite.setPosition(sf::Vector2f(0, msgWindow.getSize().y - (END_BG_IMG_SIZE.y*waveSprite.getScale().y)));
+    waveSprite.setPosition(sf::Vector2f(0, msgWindow.getSize().y - ((END_BG_IMG_SIZE.y*0.6)*waveSprite.getScale().y)));
 
     while (msgWindow.isOpen()){
         sf::Event event;
@@ -492,9 +499,9 @@ void showMessage(string message, int duration_secs, int unsigned charSize_px=0, 
         }
         
         if (!moveUp){
-            waveSprite.setPosition(sf::Vector2f(waveSprite.getPosition().x, waveSprite.getPosition().y+1));
+            waveSprite.setPosition(sf::Vector2f(waveSprite.getPosition().x, waveSprite.getPosition().y+0.5));
         }else{
-            waveSprite.setPosition(sf::Vector2f(waveSprite.getPosition().x, waveSprite.getPosition().y-1));
+            waveSprite.setPosition(sf::Vector2f(waveSprite.getPosition().x, waveSprite.getPosition().y-0.5));
         }
 
         if ((count%MAX_FRAMERATE == 0) && !moveUp && (count/MAX_FRAMERATE)%2 == 0){        // On odd seconds do this
@@ -507,6 +514,7 @@ void showMessage(string message, int duration_secs, int unsigned charSize_px=0, 
 
         msgWindow.clear(END_BG_COLOR);
         msgWindow.draw(beachSprite);
+        msgWindow.draw(crabSprite);
         msgWindow.draw(waveSprite);
         msgWindow.draw(msgText);
 
@@ -810,10 +818,15 @@ int selectDifficulty(){
     beachSprite.setScale(sf::Vector2f(diffWindow.getSize().x / END_BG_IMG_SIZE.x, diffWindow.getSize().y / END_BG_IMG_SIZE.y));
     beachSprite.setPosition(sf::Vector2f(0, diffWindow.getSize().y - (END_BG_IMG_SIZE.y*beachSprite.getScale().y)/1.5));
 
-    sf::Sprite waveSprite(beachTexture);       // transparent background sea wave
-    waveSprite.setTextureRect(sf::IntRect(sf::Vector2i(END_BG_IMG_SIZE.x, 0), END_BG_IMG_SIZE));
+    sf::Sprite crabSprite(beachTexture);        // small crab
+    crabSprite.setTextureRect(sf::IntRect(sf::Vector2i((END_BG_IMG_SIZE.x*2 - END_CRAB_SPRITE_SIZE.x), 0), END_CRAB_SPRITE_SIZE));
+    crabSprite.setScale(sf::Vector2f(diffWindow.getSize().x / END_BG_IMG_SIZE.x, diffWindow.getSize().y / END_BG_IMG_SIZE.y));
+    crabSprite.setPosition(sf::Vector2f(diffWindow.getSize().x - (END_CRAB_SPRITE_SIZE.x*10), END_CRAB_SPRITE_SIZE.y*3));     // diffWindow.getSize().x - END_CRAB_SPRITE_SIZE.x*2, diffWindow.getSize().y - END_CRAB_SPRITE_SIZE.y*2)
+
+    sf::Sprite waveSprite(beachTexture);        // transparent background sea wave
+    waveSprite.setTextureRect(sf::IntRect(sf::Vector2i(END_BG_IMG_SIZE.x, END_BG_IMG_SIZE.y*0.4), sf::Vector2i(END_BG_IMG_SIZE.x, END_BG_IMG_SIZE.y*0.6)));
     waveSprite.setScale(sf::Vector2f(diffWindow.getSize().x / END_BG_IMG_SIZE.x, diffWindow.getSize().y / END_BG_IMG_SIZE.y));
-    waveSprite.setPosition(sf::Vector2f(0, diffWindow.getSize().y - (END_BG_IMG_SIZE.y*waveSprite.getScale().y)));
+    waveSprite.setPosition(sf::Vector2f(0, diffWindow.getSize().y - ((END_BG_IMG_SIZE.y*0.6)*waveSprite.getScale().y)));
 
 
     while (diffWindow.isOpen()){
@@ -854,6 +867,7 @@ int selectDifficulty(){
 
         diffWindow.clear(END_BG_COLOR);
         diffWindow.draw(beachSprite);
+        diffWindow.draw(crabSprite);
         diffWindow.draw(waveSprite);
 
         for (i=0; i<textDiffVector.size(); i++){
