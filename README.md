@@ -33,4 +33,4 @@ with any other SFML C++ file:
 # Game images
 ![imagen](https://github.com/iikerm/sfml-minesweeper/assets/151840754/767fc612-1a08-4870-a5e2-3fd47974e518)
 
-![Uploading imagen.png…]()
+![imagen](https://github.com/iikerm/sfml-minesweeper/assets/151840754/6844eb85-fab9-44f1-8dab-7bbb8b9d8bb1)
