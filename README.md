@@ -13,6 +13,8 @@ code good practice for learning the SFML library.
  
 Feel free to download and modify the code as you wish.
 
+It is currently only compiled for Windows as `minesweeper.exe` and for Ubuntu/Linux as `minesweeper` 
+
 ---
 # Compiling on Ubuntu
 To compile the code on ubuntu (and probably on other linux distros
